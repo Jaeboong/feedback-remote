@@ -27,6 +27,70 @@ You can run `cokacremote` continuously on a VPS or EC2 instance and connect to i
 > [!WARNING]
 > `cokacremote` is intentionally powerful. It has no sandbox, command allowlist, execution approval, or path restrictions. If the service runs as `root`, an authenticated MCP client can change or delete anything on the server. Use HTTPS, strong authentication, and only connect trusted clients.
 
+## macOS / Codex-Remote-Mac
+
+이 포크에서 ChatGPT용 Mac MCP를 쓰는 방법입니다. 원본 `src/`는 그대로 두고, Mac 전용 파일은 `deploy/macos/`에만 있습니다. 더 짧은 설치 메모는 [`deploy/macos/README.md`](deploy/macos/README.md)를 보세요.
+
+각 팀원은 **자기 Mac**에 설치합니다. Tailscale Funnel 주소와 OAuth 승인 키는 기기마다 다릅니다. 한 대를 여러 명이 같이 쓰지 마세요.
+
+필요한 것: macOS, Node.js 22+, Tailscale 로그인, ChatGPT Developer mode.
+
+```bash
+git clone https://github.com/Jaeboong/feedback-remote.git
+cd feedback-remote
+chmod +x deploy/macos/install.sh
+COKACREMOTE_DEFAULT_CWD="$HOME" ./deploy/macos/install.sh
+```
+
+작업 폴더를 바꾸려면 `COKACREMOTE_DEFAULT_CWD="$HOME/project"` 처럼 지정합니다.
+
+설치 스크립트가 하는 일:
+
+- `npm ci` / `npm run build`
+- `~/Library/Application Support/cokacremote/`에 환경 파일과 승인 키 생성
+- LaunchAgent 등록 후 자동 시작
+- 이 Mac의 Tailscale 이름으로 `MCP_PUBLIC_URL` 설정
+
+이미 설치한 Mac에서 다시 실행하면 기존 승인 키는 유지됩니다.
+
+Funnel:
+
+```bash
+"$HOME/Library/Application Support/cokacremote/ctl.sh" funnel
+```
+
+tailnet에서 Funnel이 꺼져 있으면 `tailscale funnel`이 활성화 URL을 보여줍니다. 관리자가 허용한 뒤 위 명령을 다시 실행하세요. 이 서버는 `127.0.0.1:3001`에서 뜨고, ChatGPT discovery용 별칭 프록시가 `127.0.0.1:3000`을 Funnel에 노출합니다. ChatGPT가 `does not implement OAuth`를 내면 이 별칭 경로가 빠진 경우가 많습니다.
+
+ChatGPT 연결:
+
+1. 연결 방식: **서버 URL** (터널 아님)
+2. 이름: `Codex-Remote-Mac` 또는 본인 Mac이 드러나는 이름
+3. URL: `https://<이-맥의-tailscale-이름>.ts.net/mcp`
+4. 인증: **OAuth**
+5. 승인 키: `~/Library/Application Support/cokacremote/approval-key`
+
+설치가 끝나면 스크립트가 본인 URL을 출력합니다. 고급 OAuth 설정은 기본값으로 두면 됩니다.
+
+일상 명령:
+
+```bash
+SUPPORT="$HOME/Library/Application Support/cokacremote"
+"$SUPPORT/ctl.sh" restart
+"$SUPPORT/ctl.sh" status
+"$SUPPORT/ctl.sh" health
+"$SUPPORT/ctl.sh" logs
+```
+
+업데이트:
+
+```bash
+cd /path/to/feedback-remote
+git pull --ff-only origin main
+npm ci
+npm run build
+"$HOME/Library/Application Support/cokacremote/ctl.sh" restart
+```
+
 ## Quick start
 
 If you already have a Linux server and Node.js 22+, the shortest local test is:
