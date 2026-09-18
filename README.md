@@ -33,7 +33,20 @@ You can run `cokacremote` continuously on a VPS or EC2 instance and connect to i
 
 각 팀원은 **자기 Mac**에 설치합니다. Tailscale Funnel 주소와 OAuth 승인 키는 기기마다 다릅니다. 한 대를 여러 명이 같이 쓰지 마세요.
 
-필요한 것: macOS, Node.js 22+, Tailscale 로그인, ChatGPT Developer mode.
+미리 설치할 것:
+
+1. **Tailscale**  
+   [Tailscale for macOS](https://tailscale.com/download/mac) 앱을 설치하고 로그인합니다. 메뉴막대에 Tailscale이 연결돼 있어야 합니다. ChatGPT가 이 Mac에 붙으려면 같은 tailnet에서 **Funnel**도 허용돼 있어야 합니다. 꺼져 있으면 `tailscale funnel`이 활성화 URL을 보여 줍니다.
+2. **Node.js 22 이상**  
+   없으면 Homebrew로 설치합니다.
+
+   ```bash
+   brew install node
+   node --version
+   ```
+
+3. **ChatGPT Developer mode**  
+   ChatGPT → Settings → Apps / Plugins 에서 Developer mode를 켭니다.
 
 ```bash
 git clone https://github.com/Jaeboong/feedback-remote.git
@@ -89,6 +102,50 @@ git pull --ff-only origin main
 npm ci
 npm run build
 "$HOME/Library/Application Support/cokacremote/ctl.sh" restart
+```
+
+## Windows / Codex-Remote-Windows
+
+Windows 팀원은 [`deploy/windows/README.md`](deploy/windows/README.md)를 따르세요. 원본 `src/`는 그대로 두고, Windows 전용 파일만 `deploy/windows/`에 있습니다.
+
+미리 설치할 것:
+
+1. **Tailscale**  
+   [Tailscale for Windows](https://tailscale.com/download/windows) 앱을 설치하고 로그인합니다. ChatGPT 연결에는 같은 tailnet **Funnel** 허용이 필요합니다.
+2. **Node.js 22 이상**  
+   [nodejs.org](https://nodejs.org) LTS를 설치합니다. `node --version`
+3. **Git for Windows**  
+   [git-scm.com](https://git-scm.com/download/win)에서 설치합니다. 원본 `exec_command`가 `-lc`를 쓰므로 기본 셸은 Git Bash입니다.
+4. **ChatGPT Developer mode**
+
+```powershell
+git clone https://github.com/Jaeboong/feedback-remote.git
+cd feedback-remote
+$env:COKACREMOTE_DEFAULT_CWD = $env:USERPROFILE
+powershell -ExecutionPolicy Bypass -File .\deploy\windows\install.ps1
+```
+
+설치 후 Funnel:
+
+```powershell
+powershell -File "$env:LOCALAPPDATA\cokacremote\ctl.ps1" funnel
+```
+
+ChatGPT 연결:
+
+1. 연결 방식: **서버 URL** (터널 아님)
+2. 이름: `Codex-Remote-Windows` (`Codex-Remote-Mac`과 별개)
+3. URL: `https://<이-PC의-tailscale-이름>.ts.net/mcp`
+4. 인증: **OAuth**
+5. 승인 키: `%LOCALAPPDATA%\cokacremote\approval-key`
+
+자동 시작은 작업 스케줄러 작업 `Codex-Remote-Windows`입니다. 재시작/로그:
+
+```powershell
+$ctl = "$env:LOCALAPPDATA\cokacremote\ctl.ps1"
+powershell -File $ctl restart
+powershell -File $ctl health
+powershell -File $ctl logs
 ```
 
 ## Quick start

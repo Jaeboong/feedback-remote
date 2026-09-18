@@ -7,10 +7,11 @@
 ## 필요한 것
 
 - macOS
-- Node.js 22+
-- Tailscale 로그인 완료
-- 이 저장소 clone
+- [Tailscale for macOS](https://tailscale.com/download/mac) 설치 후 로그인. 메뉴막대에서 연결 확인
+- 같은 tailnet에서 Funnel 허용. 꺼져 있으면 `tailscale funnel`이 활성화 URL을 보여 줌
+- Node.js 22+. 없으면 `brew install node`
 - ChatGPT Developer mode
+- 이 저장소 clone
 
 ## 설치
 
